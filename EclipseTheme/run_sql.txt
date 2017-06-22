@@ -1,0 +1,45 @@
+alter table pool_ip_network_outer modify id BIGINT auto_increment ;
+
+DROP PROCEDURE IF EXISTS vmIpPoolInit;
+CREATE PROCEDURE vmIpPoolInit () 
+BEGIN 
+DECLARE ipCount INT DEFAULT 20;
+DECLARE networkID INT;
+DECLARE outerID INT;
+-- insert network_outer
+replace into pool_ip_network_outer (net_domain,environment,user_type,updated_date,created_date,created_by) values('DCN1-C','PRD','VM',NOW(),NOW(),'89003603');
+select a.id into outerID from pool_ip_network_outer a where a.net_domain = 'DCN1-C' and environment='PRD' and user_type='VM' limit 1 ;
+-- insert  network
+replace into pool_ip_network (outer_id,vlan_id,updated_date,created_date,created_by) values(outerId,451,NOW(),NOW(),'89003603');
+SELECT b.id INTO networkID FROM pool_ip_network b WHERE b.outer_id = outerID and b.vlan_id = 451 limit 1;
+-- insert ip
+WHILE ipCount < 100 DO 
+replace INTO  pool_ip (network_id,status,ip,created_by,created_date,data_state) VALUES
+ (networkID,'unallocated',concat('10.117.150.',ipCount),'89003603',NOW(),1 );
+SET ipCount = ipCount + 1; 
+END WHILE;
+END;
+CALL vmIpPoolInit();
+
+
+DROP PROCEDURE IF EXISTS vmIpDrPoolInit;
+CREATE PROCEDURE vmIpDrPoolInit()
+BEGIN 
+DECLARE ipCount INT DEFAULT 20;
+DECLARE networkID INT;
+DECLARE outerID INT;
+-- insert network_outer
+replace into pool_ip_network_outer (net_domain,environment,user_type,updated_date,created_date,created_by) values('DCN1-C','DR','VM',NOW(),NOW(),'89003603');
+select a.id into outerID from pool_ip_network_outer a where a.net_domain = 'DCN1-C' and environment='DR' and user_type='VM' limit 1 ;
+-- insert  network
+replace into pool_ip_network (outer_id,vlan_id,updated_date,created_date,created_by) values(outerId,451,NOW(),NOW(),'89003603');
+SELECT b.id INTO networkID FROM pool_ip_network b WHERE b.outer_id = outerID and b.vlan_id = 451 limit 1;
+-- insert ip
+WHILE ipCount < 100 DO 
+replace INTO  pool_ip (network_id,status,ip,created_by,created_date,data_state) VALUES
+ (networkID,'unallocated',concat('10.150.150.',ipCount),'89003603',NOW(),1 );
+SET ipCount = ipCount + 1; 
+END WHILE;
+END;
+CALL vmIpDrPoolInit();
+
